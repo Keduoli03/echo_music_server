@@ -1,0 +1,27 @@
+spring:
+  # 配置数据源
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/echo_music?useUnicode=true&characterEncoding=utf-8&useSSL=false # ???? MySQL ?????
+    username: root #
+    password: root
+    # type: com.alibaba.druid.pool.DruidDataSource # ?????
+
+  security:
+    user:
+      name: "root"  # 清空默认用户名（生产环境需结合自定义认证）
+      password: "root"  # 清空默认密码
+
+  # Redis配置
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+
+# JWT 配置
+jwt:
+  secret: your-secret-key-here  # JWT 密钥
+  expire: 86400  # Token 过期时间（秒）
