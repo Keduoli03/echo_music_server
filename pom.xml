@@ -75,6 +75,13 @@
             <version>3.5.12</version>
         </dependency>
 
+        <!--   分页模块     -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-jsqlparser</artifactId>
+            <version>3.5.12</version>
+        </dependency>
+
         <!-- FreeMarker 模板引擎 -->
         <dependency>
             <groupId>org.freemarker</groupId>

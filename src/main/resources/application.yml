@@ -25,3 +25,14 @@ mybatis-plus:
 jwt:
   secret: your-secret-key-here  # JWT 密钥
   expire: 86400  # Token 过期时间（秒）
+
+minio:
+  endpoint: http://localhost:9000 # 修改你的 MinIO 端点
+  accessKey: wNyYymssKFsMrSX3zonj  # 修改你的 MinIO Access Key
+  secretKey: qWNi4SufFMkZkKtJZV1sieULCkfeCLQ8nAjxNeWJ # 修改你的 MinIO Secret Key
+  bucket: echo-music-data # 确认 Bucket 名称与你创建的一致
+
+  # 头像上传限制
+  avatar:
+    max-size: 5MB # 最大文件大小
+    allowed-types: image/jpeg,image/png # 允许的文件类型
