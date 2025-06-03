@@ -1,5 +1,6 @@
 package com.lanke.echomusic.common;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,6 +15,10 @@ public class Result<T> {
     private T data;
 
     //------------------------ 成功系列 ------------------------
+    @JsonIgnore
+    public boolean isSuccess() {
+        return code == 200;
+    }
     // 不带数据的成功
     public static <T> Result<T> success() {
         return new Result<>(HttpStatus.OK.value(), "操作成功", null);
@@ -25,12 +30,12 @@ public class Result<T> {
     }
 
     // 自定义消息的成功
-    public static <T> Result<T> successMsg(String msg) {
+    public static <T> Result<T> success(String msg) {
         return new Result<>(HttpStatus.OK.value(), msg, null);
     }
 
     // 带数据和自定义消息的成功
-    public static <T> Result<T> successMsg(String msg, T data) {
+    public static <T> Result<T> success(String msg, T data) {
         return new Result<>(HttpStatus.OK.value(), msg, data);
     }
 

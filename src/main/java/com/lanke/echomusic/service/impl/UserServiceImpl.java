@@ -3,7 +3,7 @@ package com.lanke.echomusic.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lanke.echomusic.dto.user.UserInfoDTO;
+import com.lanke.echomusic.dto.user.PasswordUpdateDTO;
 import com.lanke.echomusic.dto.user.UserUpdateDTO;
 import com.lanke.echomusic.entity.User;
 import com.lanke.echomusic.mapper.UserMapper;
@@ -190,4 +190,32 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             }
         }
     }
+
+    //修改密码
+    @Override
+    @Transactional
+    public void updatePassword(Long userId, PasswordUpdateDTO dto) {
+        // 1. 校验用户是否存在
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new IllegalArgumentException("用户不存在"); // 自定义异常
+        }
+
+        // 2. 校验旧密码是否正确
+        if (!passwordEncoder.matches(dto.getOldPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("当前密码错误");
+        }
+
+        // 3. 校验新密码和确认密码是否一致
+        if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
+            throw new IllegalArgumentException("新密码与确认密码不一致");
+        }
+
+        // 4. 加密新密码并更新
+        String encodedNewPassword = passwordEncoder.encode(dto.getNewPassword());
+        user.setPassword(encodedNewPassword);
+        userMapper.updateById(user);
+    }
+
+
 }

@@ -1,9 +1,7 @@
 package com.lanke.echomusic.service;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.lanke.echomusic.dto.user.UserInfoDTO;
+import com.lanke.echomusic.dto.user.PasswordUpdateDTO;
 import com.lanke.echomusic.dto.user.UserUpdateDTO;
-import com.lanke.echomusic.entity.User;
 import com.lanke.echomusic.vo.UserVO;
 import jakarta.validation.Valid;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,4 +15,6 @@ public interface IUserService {
     UserVO getProfile(Long userId);
 
     void updateUserAvatar(Long userId, MultipartFile avatarFile);
+
+    void updatePassword(Long userId, PasswordUpdateDTO dto);
 }

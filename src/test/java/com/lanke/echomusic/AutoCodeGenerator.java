@@ -17,7 +17,7 @@ public class AutoCodeGenerator {
         String basePackage = "com.lanke.echomusic";
         String moduleName = "";
         String mapperLocation = "src\\main\\resources\\mapper\\" + moduleName;
-        String tableName = "l_user";
+        String tableName = "l_singer";
         String tablePrefix = "l_";
         FastAutoGenerator.create(url, username, password)
                 .globalConfig(builder -> {
