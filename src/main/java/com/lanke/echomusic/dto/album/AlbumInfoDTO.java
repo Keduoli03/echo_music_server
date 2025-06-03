@@ -28,7 +28,7 @@ public class AlbumInfoDTO {
     @Size(max = 100, message = "专辑名称长度不能超过100个字符")
     private String name;
 
-    @Schema(description = "歌手ID", required = true, example = "2001")
+    @Schema(description = "歌手ID", required = true, example = "2")
     @NotNull(message = "歌手ID不能为空")
     private Long singerId;
 

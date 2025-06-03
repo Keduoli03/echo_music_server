@@ -107,6 +107,18 @@
             <version>8.5.9</version>
         </dependency>
 
+        <!-- 音频元数据解析 -->
+        <dependency>
+            <groupId>ws.schild</groupId>
+            <artifactId>jave-core</artifactId>
+            <version>3.5.0</version>
+        </dependency>
+        <dependency>
+            <groupId>ws.schild</groupId>
+            <artifactId>jave-all-deps</artifactId>
+            <version>3.5.0</version>
+        </dependency>
+
         <!-- Swagger3 + Knife4j -->
         <dependency>
             <groupId>com.github.xiaoymin</groupId>
