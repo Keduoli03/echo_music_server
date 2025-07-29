@@ -39,4 +39,7 @@ public class SingerInfoDTO {
     @Schema(description = "性别（0-未知，1-男，2-女）")
     private Integer gender;
 
+    @Schema(description = "状态（1-启用，0-禁用）", example = "1")
+    private Integer status;
+
 }

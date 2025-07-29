@@ -9,18 +9,15 @@ import java.util.List;
 @Schema(description = "歌曲分页结果视图对象")
 public class SongPageVO {
     @Schema(description = "当前页码")
-    private Integer pageNum;
+    private long current;
 
     @Schema(description = "每页数量")
-    private Integer pageSize;
+    private long size;
 
     @Schema(description = "总记录数")
     private Long total;
 
-    @Schema(description = "总页数")
-    private Integer totalPages;
-
-    @Schema(description = "歌曲列表")
-    private List<SongListItemVO> list;
+    @Schema(description = "记录列表")
+    private List<SongListVO> records; // 记录列表
 }
 

@@ -22,7 +22,7 @@ public interface IAdminService {
     void updateUserAvatar(Long userId, MultipartFile avatarFile);
 
     void updatePassword(Long userId, PasswordUpdateDTO dto);
-    IPage<UserVO> getAllUsers(UserSearchDTO searchDTO);
+    IPage<UserVO> getUserList(UserSearchDTO searchDTO);
 
     void updateUserInfo(Long adminId, Long userId, @Valid AdminUpdateDTO dto);
 

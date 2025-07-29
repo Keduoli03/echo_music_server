@@ -13,15 +13,11 @@ public class SongInfoDTO {
     @Schema(description = "歌曲名称", required = true)
     @NotBlank(message = "歌曲名称不能为空")
     @Size(max = 100, message = "歌曲名称长度不能超过100个字符")
-    private String name;
+    private String songName;
 
     @Schema(description = "原名")
     @Size(max = 100, message = "原名长度不能超过100个字符")
     private String originalName;
-
-    @Schema(description = "歌手名称")
-    @Size(max = 100, message = "歌手名称长度不能超过100个字符")
-    private String artist;
 
     @Schema(description = "专辑ID")
     private Long albumId;
@@ -66,8 +62,8 @@ public class SongInfoDTO {
 
     @Schema(description = "歌手名称列表（多个用逗号分隔）", example = "许嵩,何曼婷")
     @NotBlank(message = "歌手名称不能为空")
-    private String artistNames; // 替换原singerIds，使用名称自动创建
+    private String singerName; // 改名：从 artistNames 改为 singerName
 
     @Schema(description = "专辑名称（自动创建时必填）", example = "素颜")
-    private String albumName; // 新增：自动创建专辑时使用
+    private String albumName;
 }

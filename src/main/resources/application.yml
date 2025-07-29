@@ -5,7 +5,7 @@ spring:
     url: jdbc:mysql://localhost:3306/echo_music?useUnicode=true&characterEncoding=utf-8&useSSL=false # ???? MySQL ?????
     username: root #
     password: root
-    # type: com.alibaba.druid.pool.DruidDataSource # ?????
+    # type: com.aa.druid.pool.DruidDataSource # ?????libaba.druid.pool.DruidDataSource # ?????
 
   security:
     user:

@@ -8,12 +8,12 @@ import lombok.Data;
 public class UserSearchDTO {
 
     @Schema(
-            description = "页码（默认1）",
+            description = "当前页码（默认1）",
             example = "1",
             defaultValue = "1",
             minimum = "1"
     )
-    private long pageNum = 1;
+    private long current = 1;
 
     @Schema(
             description = "每页大小（默认10）",
@@ -22,7 +22,7 @@ public class UserSearchDTO {
             minimum = "1",
             maximum = "100"
     )
-    private long pageSize = 10;
+    private long size = 10;
 
     @Schema(
             description = "用户名模糊查询",
@@ -30,7 +30,7 @@ public class UserSearchDTO {
             minLength = 2,
             maxLength = 50
     )
-    private String usernameLike;
+    private String userName;
 
     @Schema(
             description = "昵称模糊查询",
@@ -38,7 +38,7 @@ public class UserSearchDTO {
             minLength = 2,
             maxLength = 50
     )
-    private String nicknameLike;
+    private String nickName;
 
     @Schema(
             description = "手机号模糊查询",
@@ -47,21 +47,21 @@ public class UserSearchDTO {
             minLength = 6,
             maxLength = 20
     )
-    private String phoneLike;
+    private String userPhone;
 
     @Schema(
             description = "邮箱模糊查询",
             example = "@example.com",
             pattern = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$"
     )
-    private String emailLike;
+    private String userEmail;
 
     @Schema(
             description = "用户状态：0-禁用, 1-启用",
             example = "1",
             allowableValues = {"0", "1"}
     )
-    private Integer status;
+    private Integer userStatus;
 
     @Schema(
             description = "排序字段（格式：字段名,排序方向）。支持字段：username, nickname, createdAt, status",

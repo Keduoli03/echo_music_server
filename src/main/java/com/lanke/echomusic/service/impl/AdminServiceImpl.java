@@ -225,33 +225,33 @@ public class AdminServiceImpl extends ServiceImpl<UserMapper, User> implements I
     }
 
     @Override
-    public IPage<UserVO> getAllUsers(UserSearchDTO searchDTO) {
-        Page<User> page = new Page<>(searchDTO.getPageNum(), searchDTO.getPageSize());
+    public IPage<UserVO> getUserList(UserSearchDTO searchDTO) {
+        Page<User> page = new Page<>(searchDTO.getCurrent(), searchDTO.getSize());
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
 
         // 添加状态过滤条件
-        if (searchDTO.getStatus() != null) {
-            queryWrapper.eq(User::getStatus, searchDTO.getStatus());
+        if (searchDTO.getUserStatus() != null) {
+            queryWrapper.eq(User::getStatus, searchDTO.getUserStatus());
         }
 
         // 添加用户名模糊查询
-        if (StringUtils.hasText(searchDTO.getUsernameLike())) {
-            queryWrapper.like(User::getUsername, searchDTO.getUsernameLike());
+        if (StringUtils.hasText(searchDTO.getUserName())) {
+            queryWrapper.like(User::getUsername, searchDTO.getUserName());
         }
 
         // 添加昵称模糊查询
-        if (StringUtils.hasText(searchDTO.getNicknameLike())) {
-            queryWrapper.like(User::getNickname, searchDTO.getNicknameLike());
+        if (StringUtils.hasText(searchDTO.getNickName())) {
+            queryWrapper.like(User::getNickname, searchDTO.getNickName());
         }
 
         // 添加手机号模糊查询
-        if (StringUtils.hasText(searchDTO.getPhoneLike())) {
-            queryWrapper.like(User::getPhone, searchDTO.getPhoneLike());
+        if (StringUtils.hasText(searchDTO.getUserPhone())) {
+            queryWrapper.like(User::getPhone, searchDTO.getUserPhone());
         }
 
         // 添加邮箱模糊查询
-        if (StringUtils.hasText(searchDTO.getEmailLike())) {
-            queryWrapper.like(User::getEmail, searchDTO.getEmailLike());
+        if (StringUtils.hasText(searchDTO.getUserEmail())) {
+            queryWrapper.like(User::getEmail, searchDTO.getUserEmail());
         }
 
         // 排序逻辑

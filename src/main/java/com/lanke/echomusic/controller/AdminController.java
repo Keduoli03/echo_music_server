@@ -91,7 +91,7 @@ public class AdminController {
     }
 
     // ------------------------ 更新用户头像 ------------------------
-    @Operation(summary = "更新用户头像", description = "上传新头像并更新用户信息")
+    @Operation(summary = "更新管理员用户头像", description = "上传新头像并更新用户信息")
     @SecurityRequirement(name = "Authorization")
     @PostMapping(value = "/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Result<String> updateAvatar(@RequestParam("avatar") MultipartFile avatarFile) {
@@ -131,8 +131,8 @@ public class AdminController {
      * @return 用户分页数据
      *
      * @apiNote 支持的查询参数：
-     * - pageNum: 页码（默认1）
-     * - pageSize: 每页数量（默认10）
+     * - current: 当前页码（默认1）
+     * - size: 每页数量（默认10）
      * - usernameLike: 用户名模糊查询
      * - status: 用户状态（0-禁用，1-启用）
      * - orderBy: 排序字段，格式为 "字段名,排序方向"
@@ -140,10 +140,10 @@ public class AdminController {
      *   排序方向：asc（升序）或 desc（降序），默认降序
      *   示例："username,asc" 或 "createdAt"
      */
-    @Operation(summary = "获取用户分页列表", description = "支持分页、条件筛选和多字段排序的用户查询接口")
-    @GetMapping("/getAllUsers")
-    public Result<IPage<UserVO>> getAllUsers(@ParameterObject UserSearchDTO searchDTO) {
-        return Result.success(adminService.getAllUsers(searchDTO));
+    @Operation(summary = "获取用户列表", description = "支持分页、条件筛选和多字段排序的用户查询接口")
+    @GetMapping("/getUserList")
+    public Result<IPage<UserVO>> getUserList(@ParameterObject UserSearchDTO searchDTO) {
+        return Result.success("请求成功",adminService.getUserList(searchDTO));
     }
 
 

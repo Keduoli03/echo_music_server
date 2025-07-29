@@ -24,7 +24,7 @@ public class SongDetailDTO {
     private Long id;
 
     @Schema(description = "歌曲名称", example = "素颜", required = true)
-    private String name;
+    private String songName;
 
     @Schema(description = "歌曲原名", example = "素颜")
     private String originalName;

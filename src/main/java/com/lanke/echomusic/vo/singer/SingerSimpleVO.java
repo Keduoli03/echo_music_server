@@ -1,4 +1,4 @@
-package com.lanke.echomusic.vo.singger;
+package com.lanke.echomusic.vo.singer;
 
 
 import io.swagger.v3.oas.annotations.media.Schema;

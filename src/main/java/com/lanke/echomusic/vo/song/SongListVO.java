@@ -1,21 +1,21 @@
 package com.lanke.echomusic.vo.song;
 
 
-import com.lanke.echomusic.vo.singer.SingerSimpleVO;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.time.LocalDate;
-import java.util.List;
+
 @Data
 @Schema(description = "歌曲列表项视图对象")
-public class SongListItemVO {
+public class SongListVO {
     @Schema(description = "歌曲ID")
     private Long id;
     @Schema(description = "歌曲名称")
-    private String name;
-    @Schema(description = "歌手列表")
-    private List<SingerSimpleVO> singers;
+    private String songName;
+    @Schema(description = "歌手")
+    private String singerName;
     @Schema(description = "专辑名称")
     private String albumName;
     @Schema(description = "时长（秒）")
