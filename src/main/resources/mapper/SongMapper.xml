@@ -1,5 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lanke.echomusic.mapper.SongMapper">
-
+    <select id="searchSongs" resultType="com.lanke.echomusic.vo.song.SongListVO">
+        SELECT 
+            s.id, s.name AS songName, s.album_id, s.duration, s.genre, s.language, 
+            s.music_type, mt.name AS musicTypeName, 
+            s.play_count, s.like_count, s.release_date, s.cover_url, s.play_url, s.status, 
+            a.name AS albumName, 
+            GROUP_CONCAT(si.name ORDER BY si.name SEPARATOR ', ') AS singerName 
+        FROM l_song s 
+        LEFT JOIN l_album a ON s.album_id = a.id 
+        LEFT JOIN l_song_singer ss ON s.id = ss.song_id 
+        LEFT JOIN l_singer si ON ss.singer_id = si.id 
+        LEFT JOIN l_music_type mt ON s.music_type = mt.id 
+        <where>
+        <if test="dto.songName != null and dto.songName != ''">
+            AND s.name LIKE CONCAT('%', #{dto.songName}, '%')
+        </if>
+        <if test="dto.singerName != null and dto.singerName != ''">
+            AND si.name LIKE CONCAT('%', #{dto.singerName}, '%')
+        </if>
+        <if test="dto.albumName != null and dto.albumName != ''">
+            AND a.name LIKE CONCAT('%', #{dto.albumName}, '%')
+        </if>
+        <if test="dto.musicType != null">
+            AND s.music_type = #{dto.musicType}
+        </if>
+        <if test="dto.genre != null and dto.genre != ''">
+            AND s.genre LIKE CONCAT('%', #{dto.genre}, '%')
+        </if>
+        <if test="dto.language != null and dto.language != ''">
+            AND s.language LIKE CONCAT('%', #{dto.language}, '%')
+        </if>
+        <if test="dto.durationMin != null">
+            AND s.duration &gt;= #{dto.durationMin}
+        </if>
+        <if test="dto.durationMax != null">
+            AND s.duration &lt;= #{dto.durationMax}
+        </if>
+        </where>
+        GROUP BY s.id, s.name, s.album_id, s.duration, s.genre, s.language, s.music_type, mt.name, 
+                 s.play_count, s.like_count, s.release_date, s.cover_url, s.play_url, s.status, a.name 
+        <choose>
+            <when test="dto.orderBy == 'playCount'">
+                ORDER BY s.play_count DESC
+            </when>
+            <when test="dto.orderBy == 'likeCount'">
+                ORDER BY s.like_count DESC
+            </when>
+            <when test="dto.orderBy == 'releaseDate'">
+                ORDER BY s.release_date DESC
+            </when>
+            <when test="dto.orderBy != null and dto.orderBy != ''">
+                ORDER BY ${dto.orderBy}
+            </when>
+            <otherwise>
+                ORDER BY s.id DESC
+            </otherwise>
+        </choose>
+    </select>
 </mapper>

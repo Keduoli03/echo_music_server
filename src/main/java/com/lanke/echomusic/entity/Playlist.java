@@ -77,6 +77,16 @@ public class Playlist implements Serializable {
     private Integer collectCount;
 
     /**
+     * 音乐类型（1-华语流行, 2-欧美流行, 3-日韩流行, 4-古典音乐, 5-民谣, 6-摇滚, 7-电子音乐, 8-说唱, 9-爵士, 10-其他）
+     */
+    private Integer musicType;
+
+    /**
+     * 歌单分类（1-个人歌单, 2-精选歌单, 3-推荐歌单, 4-官方歌单, 5-主题歌单）
+     */
+    private Integer playlistCategory;
+
+    /**
      * 创建时间
      */
     private LocalDateTime createTime;
@@ -207,5 +217,21 @@ public class Playlist implements Serializable {
             ", createTime = " + createTime +
             ", updateTime = " + updateTime +
             "}";
+    }
+
+    public Integer getMusicType() {
+        return musicType;
+    }
+
+    public void setMusicType(Integer musicType) {
+        this.musicType = musicType;
+    }
+
+    public Integer getPlaylistCategory() {
+        return playlistCategory;
+    }
+
+    public void setPlaylistCategory(Integer playlistCategory) {
+        this.playlistCategory = playlistCategory;
     }
 }

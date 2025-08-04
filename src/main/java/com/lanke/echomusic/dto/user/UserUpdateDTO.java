@@ -12,15 +12,15 @@ import lombok.Data;
 public class UserUpdateDTO {
     @Schema(description = "用户名")
     @Size(min = 3, max = 20, message = "用户名长度必须在3-20之间")
-    private String username;
+    private String userName;  // 改为 userName
 
     @Schema(description = "昵称")
     @Size(max = 30, message = "昵称长度不能超过30")
-    private String nickname;
+    private String nickName;  // 改为 nickName
 
     @Schema(description = "邮箱")
     @Email(message = "邮箱格式不正确")
-    private String email;
+    private String email;     // 保持 email（不是 emailAddress）
 
     @Schema(description = "头像URL")
     private String avatarUrl;

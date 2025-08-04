@@ -3,13 +3,21 @@ package com.lanke.echomusic.controller;
 import com.lanke.echomusic.common.Result;
 import com.lanke.echomusic.dto.playlist.PlaylistDeleteDTO;
 import com.lanke.echomusic.dto.playlist.PlaylistInfoDTO;
+import com.lanke.echomusic.dto.playlist.PlaylistSearchDTO;
 import com.lanke.echomusic.dto.playlist.PlaylistUpdateDTO;
 import com.lanke.echomusic.entity.Playlist;
 import com.lanke.echomusic.service.IPlaylistService;
 import com.lanke.echomusic.utils.RequestProcessor;
+import com.lanke.echomusic.vo.playlist.PlaylistPageVO;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.annotation.Resource;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.BeanUtils;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -120,6 +128,27 @@ public class PlaylistController {
         }  catch (Exception e) {
             return Result.error(500, "封面上传失败：" + e.getMessage());
         }
+    }
+
+    @Operation(summary = "获取歌单列表", description = "支持分页、条件筛选和多字段排序的歌单查询接口")
+    @GetMapping("/getPlaylistList")
+    public Result<PlaylistPageVO> getPlaylistsPage(@ParameterObject PlaylistSearchDTO dto) {
+        PlaylistPageVO result = playlistService.searchPlaylists(dto);
+        return Result.success("获取成功", result);
+    }
+
+    @Operation(summary = "获取音乐类型列表")
+    @GetMapping("/musicTypes")
+    public Result<List<Map<String, Object>>> getMusicTypes() {
+        List<Map<String, Object>> musicTypes = playlistService.getAllMusicTypes();
+        return Result.success("获取成功", musicTypes);
+    }
+
+    @Operation(summary = "获取歌单分类列表")
+    @GetMapping("/categories")
+    public Result<List<Map<String, Object>>> getPlaylistCategories() {
+        List<Map<String, Object>> categories = playlistService.getAllPlaylistCategories();
+        return Result.success("获取成功", categories);
     }
 
     /**

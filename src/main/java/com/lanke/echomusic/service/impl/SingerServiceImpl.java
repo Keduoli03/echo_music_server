@@ -14,6 +14,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanke.echomusic.service.ISongSingerService;
 import com.lanke.echomusic.service.MinioService;
+import com.lanke.echomusic.service.IOperationLogService;
 import com.lanke.echomusic.vo.singer.SingerPageVO;
 
 import org.slf4j.Logger;
@@ -21,16 +22,21 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
+import org.springframework.beans.factory.annotation.Autowired;  // Add this import
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import com.lanke.echomusic.annotation.OperationLog;
 
 @Service
 public class SingerServiceImpl extends ServiceImpl<SingerMapper, Singer> implements ISingerService {
@@ -53,14 +59,14 @@ public class SingerServiceImpl extends ServiceImpl<SingerMapper, Singer> impleme
         // 复制DTO所有字段（包括别名、头像等）
         BeanUtils.copyProperties(dto, singer);
         
-        // 类型转换：Integer -> Byte
+        // 直接使用Integer类型，无需转换
         if (dto.getGender() != null) {
-            singer.setGender(dto.getGender().byteValue());
+            singer.setGender(dto.getGender());
         }
         if (dto.getStatus() != null) {
-            singer.setStatus(dto.getStatus().byteValue());
+            singer.setStatus(dto.getStatus());
         } else {
-            singer.setStatus((byte) 1); // 默认启用状态
+            singer.setStatus(1); // 默认启用状态
         }
     
         // 自动填充时间字段（可通过MyBatis-Plus实现）
@@ -89,21 +95,89 @@ public class SingerServiceImpl extends ServiceImpl<SingerMapper, Singer> impleme
     }
 
 
+    // 在类顶部添加注入
+    @Autowired
+    private IOperationLogService operationLogService;
+    
     @Override
     public boolean updateSinger(SingerInfoDTO dto) {
         if (dto.getId() == null || dto.getId() <= 0) {
             throw new IllegalArgumentException("歌手ID不能为空");
         }
-
+    
         Singer singer = getById(dto.getId());
         if (singer == null) {
             throw new IllegalArgumentException("歌手不存在");
         }
-
+    
+        // 记录变更详情
+        StringBuilder changeDetails = new StringBuilder();
+        
+        // 检查姓名变更
+        if (dto.getName() != null && !dto.getName().equals(singer.getName())) {
+            changeDetails.append(String.format("姓名: %s -> %s; ", singer.getName(), dto.getName()));
+        }
+        
+        // 检查性别变更
+        if (dto.getGender() != null && !dto.getGender().equals(singer.getGender())) {
+            changeDetails.append(String.format("性别: %s -> %s; ", singer.getGender(), dto.getGender()));
+        }
+        
+        // 检查生日变更
+        if (dto.getBirthDate() != null && !dto.getBirthDate().equals(singer.getBirthDate())) {
+            changeDetails.append(String.format("生日: %s -> %s; ", singer.getBirthDate(), dto.getBirthDate()));
+        }
+        
+        // 检查简介变更 (使用正确的字段名 description)
+        if (dto.getDescription() != null && !dto.getDescription().equals(singer.getDescription())) {
+            changeDetails.append(String.format("简介: %s -> %s; ", 
+                singer.getDescription() != null ? singer.getDescription() : "无", 
+                dto.getDescription()));
+        }
+        
+        // 检查国籍变更
+        if (dto.getNationality() != null && !dto.getNationality().equals(singer.getNationality())) {
+            changeDetails.append(String.format("国籍: %s -> %s; ", 
+                singer.getNationality() != null ? singer.getNationality() : "无", 
+                dto.getNationality()));
+        }
+        
+        // 检查别名变更
+        if (dto.getAlias() != null && !dto.getAlias().equals(singer.getAlias())) {
+            changeDetails.append(String.format("别名: %s -> %s; ", 
+                singer.getAlias() != null ? singer.getAlias() : "无", 
+                dto.getAlias()));
+        }
+        
+        // 检查状态变更
+        if (dto.getStatus() != null && !dto.getStatus().equals(singer.getStatus())) {
+            changeDetails.append(String.format("状态: %s -> %s; ", singer.getStatus(), dto.getStatus()));
+        }
+    
+        // 执行更新
         BeanUtils.copyProperties(dto, singer, getNullPropertyNames(dto));
         singer.setUpdatedAt(LocalDateTime.now());
-
-        return updateById(singer);
+        boolean result = updateById(singer);
+        
+        // 记录详细操作日志
+        if (changeDetails.length() > 0) {
+            String description = String.format("修改歌手 %s 的信息: %s", 
+                singer.getName(), changeDetails.toString());
+            
+            operationLogService.saveLog(
+                "歌手管理", 
+                "修改", 
+                description,
+                "PUT",
+                "/api/singer/update",
+                null, // 参数由AOP自动记录
+                result ? "成功" : "失败",
+                null,
+                0L
+            );
+        }
+        
+        return result;
     }
 
     @Override
@@ -222,8 +296,11 @@ public class SingerServiceImpl extends ServiceImpl<SingerMapper, Singer> impleme
         if (searchDTO.getStatus() != null) {
             queryWrapper.eq(Singer::getStatus, searchDTO.getStatus().byteValue());
         }
+        if (searchDTO.getSingerType() != null) {
+            queryWrapper.eq(Singer::getSingerType, searchDTO.getSingerType().byteValue());
+        }
         
-        // 处理排序
+        // 添加排序逻辑
         if (StringUtils.hasText(searchDTO.getOrderBy())) {
             String[] orderFields = searchDTO.getOrderBy().split(";");
             for (String orderField : orderFields) {
@@ -286,4 +363,46 @@ public class SingerServiceImpl extends ServiceImpl<SingerMapper, Singer> impleme
         return pageVO;
     }
 
+
+    @Override
+    public List<String> getAllNationalities() {
+        // 查询所有不为空的国籍，去重并排序
+        LambdaQueryWrapper<Singer> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.select(Singer::getNationality)
+                   .isNotNull(Singer::getNationality)
+                   .ne(Singer::getNationality, "")
+                   .groupBy(Singer::getNationality);
+        
+        List<Singer> singers = baseMapper.selectList(queryWrapper);
+        return singers.stream()
+                     .map(Singer::getNationality)
+                     .filter(nationality -> nationality != null && !nationality.trim().isEmpty())
+                     .distinct()
+                     .sorted()
+                     .collect(Collectors.toList());
+    }
+
+    @Override
+    public Map<Integer, String> getSingerTypes() {
+        Map<Integer, String> types = new HashMap<>();
+        types.put(1, "个人歌手");
+        types.put(2, "乐队/组合");
+        return types;
+    }
+    
+    @Override
+    public SingerInfoDTO getSingerById(Long id) {
+        if (id == null || id <= 0) {
+            throw new IllegalArgumentException("歌手ID不能为空或无效");
+        }
+        
+        Singer singer = getById(id);
+        if (singer == null) {
+            throw new IllegalArgumentException("歌手不存在");
+        }
+        
+        SingerInfoDTO dto = new SingerInfoDTO();
+        BeanUtils.copyProperties(singer, dto);
+        return dto;
+    }
 }

@@ -39,6 +39,9 @@ public class SingerSearchDTO {
     @Schema(description = "状态（1-启用，0-禁用）", example = "1")
     private Integer status;
     
+    @Schema(description = "歌手类型（1-个人歌手，2-乐队/组合）", example = "1")
+    private Integer singerType;
+    
     @Schema(
             description = "排序字段（格式：字段名,排序方向）。支持字段：name, createdAt, birthDate",
             example = "name,asc;createdAt,desc"

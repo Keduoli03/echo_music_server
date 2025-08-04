@@ -62,9 +62,9 @@ public class AlbumServiceImpl extends ServiceImpl<AlbumMapper, Album> implements
         album.setName(dto.getAlbumName());
         album.setReleaseDate(dto.getReleaseDate());
         
-        // 类型转换：Integer -> Byte
-        album.setType(dto.getType() != null ? dto.getType().byteValue() : (byte) 1);
-        album.setStatus(dto.getStatus() != null ? dto.getStatus().byteValue() : (byte) 1);
+        // 直接使用 Integer 类型，无需转换
+        album.setType(dto.getType() != null ? dto.getType() : 1);
+        album.setStatus(dto.getStatus() != null ? dto.getStatus() : 1);
         
         // 其他字段
         album.setDescription(dto.getDescription());
@@ -165,7 +165,7 @@ public class AlbumServiceImpl extends ServiceImpl<AlbumMapper, Album> implements
             album.setReleaseDate(dto.getReleaseDate());
         }
         if (dto.getType() != null) {
-            album.setType(dto.getType().byteValue()); // Integer -> Byte
+            album.setType(dto.getType()); // 直接使用Integer类型
         }
         if (StringUtils.hasText(dto.getDescription())) {
             album.setDescription(dto.getDescription());
@@ -174,7 +174,7 @@ public class AlbumServiceImpl extends ServiceImpl<AlbumMapper, Album> implements
             album.setCoverUrl(dto.getCoverUrl());
         }
         if (dto.getStatus() != null) {
-            album.setStatus(dto.getStatus().byteValue()); // Integer -> Byte
+            album.setStatus(dto.getStatus()); // 直接使用Integer类型
         }
         
         album.setUpdatedAt(LocalDateTime.now());
@@ -259,7 +259,7 @@ public class AlbumServiceImpl extends ServiceImpl<AlbumMapper, Album> implements
 
     @Override
     public Album getAlbumByName(String albumName) {
-        if (StringUtils.isEmpty(albumName)) {
+        if (!StringUtils.hasText(albumName)) { 
             return null;
         }
         return baseMapper.selectOne(new LambdaQueryWrapper<Album>()

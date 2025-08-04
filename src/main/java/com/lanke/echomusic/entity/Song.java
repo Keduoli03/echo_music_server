@@ -78,6 +78,11 @@ public class Song implements Serializable {
     private String genre;
 
     /**
+     * 音乐类型ID（关联l_music_type表）
+     */
+    private Integer musicType;
+
+    /**
      * 歌词
      */
     private String lyrics;
@@ -93,9 +98,9 @@ public class Song implements Serializable {
     private String coverUrl;
 
     /**
-     * 状态（0-下架，1-上架）
+     * 状态（1-启用，0-禁用）
      */
-    private Byte status;
+    private Integer status;
 
     /**
      * 播放次数
@@ -205,6 +210,14 @@ public class Song implements Serializable {
         this.genre = genre;
     }
 
+    public Integer getMusicType() {
+        return musicType;
+    }
+
+    public void setMusicType(Integer musicType) {
+        this.musicType = musicType;
+    }
+
     public String getLyrics() {
         return lyrics;
     }
@@ -229,11 +242,11 @@ public class Song implements Serializable {
         this.coverUrl = coverUrl;
     }
 
-    public Byte getStatus() {
+    public Integer getStatus() {
         return status;
     }
 
-    public void setStatus(Byte status) {
+    public void setStatus(Integer status) {
         this.status = status;
     }
 

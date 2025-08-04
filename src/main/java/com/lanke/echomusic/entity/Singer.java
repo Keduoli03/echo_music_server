@@ -60,12 +60,17 @@ public class Singer implements Serializable {
     /**
      * 性别（0-未知，1-男，2-女）
      */
-    private Byte gender;
+    private Integer gender;
 
     /**
      * 状态（1-启用，0-禁用）
      */
-    private Byte status;
+    private Integer status;
+
+    /**
+     * 歌手类型（1-个人歌手，2-乐队/组合）
+     */
+    private Integer singerType;
 
     /**
      * 创建时间
@@ -133,20 +138,28 @@ public class Singer implements Serializable {
         this.birthDate = birthDate;
     }
 
-    public Byte getGender() {
+    public Integer getGender() {
         return gender;
     }
 
-    public void setGender(Byte gender) {
+    public void setGender(Integer gender) {
         this.gender = gender;
     }
 
-    public Byte getStatus() {
+    public Integer getStatus() {
         return status;
     }
 
-    public void setStatus(Byte status) {
+    public void setStatus(Integer status) {
         this.status = status;
+    }
+
+    public Integer getSingerType() {
+        return singerType;
+    }
+
+    public void setSingerType(Integer singerType) {
+        this.singerType = singerType;
     }
 
     public LocalDateTime getCreatedAt() {

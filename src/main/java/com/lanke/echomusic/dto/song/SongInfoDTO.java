@@ -29,6 +29,9 @@ public class SongInfoDTO {
     @Size(max = 50, message = "风格长度不能超过50个字符")
     private String genre;
 
+    @Schema(description = "音乐类型ID")
+    private Integer musicType;
+
     @Schema(description = "歌曲语言")
     @Size(max = 20, message = "语言长度不能超过20个字符")
     private String language;

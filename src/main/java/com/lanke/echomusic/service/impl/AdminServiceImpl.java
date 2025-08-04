@@ -12,6 +12,7 @@ import com.lanke.echomusic.dto.user.UserUpdateDTO;
 import com.lanke.echomusic.entity.User;
 import com.lanke.echomusic.mapper.UserMapper;
 import com.lanke.echomusic.service.IAdminService;
+import com.lanke.echomusic.service.IOperationLogService;  // 添加这行
 import com.lanke.echomusic.service.MinioService;
 import com.lanke.echomusic.utils.JwtUtil;
 import com.lanke.echomusic.vo.UserVO;
@@ -38,7 +39,7 @@ public class AdminServiceImpl extends ServiceImpl<UserMapper, User> implements I
     @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate; // 明确泛型为 <String, Object>
+    private RedisTemplate<String, Object> redisTemplate;
     @Autowired
     private JwtUtil jwtUtil;
     @Value("${jwt.expire}")
@@ -48,7 +49,8 @@ public class AdminServiceImpl extends ServiceImpl<UserMapper, User> implements I
     private MinioService minioService;
     @Autowired
     private UserMapper userMapper;
-
+    @Autowired
+    private IOperationLogService operationLogService;  // 添加这行
 
 
     @Override
@@ -115,42 +117,72 @@ public class AdminServiceImpl extends ServiceImpl<UserMapper, User> implements I
         if (user == null) {
             throw new IllegalArgumentException("用户不存在");
         }
-
+    
+        // 记录修改详情
+        StringBuilder changeDetails = new StringBuilder();
+    
         // 更新用户信息（只更新DTO中提供的字段）
-        if (dto.getUsername() != null && !dto.getUsername().isEmpty()) {
+        if (dto.getUserName() != null && !dto.getUserName().isEmpty() && !dto.getUserName().equals(user.getUsername())) {
             // 检查新用户名是否已存在（排除当前用户）
             if (count(new LambdaQueryWrapper<User>()
-                    .eq(User::getUsername, dto.getUsername())
+                    .eq(User::getUsername, dto.getUserName())
                     .ne(User::getId, userId)) > 0) {
                 throw new IllegalArgumentException("用户名已被使用");
             }
-            user.setUsername(dto.getUsername());
+            changeDetails.append(String.format("用户名: '%s' → '%s'; ", user.getUsername(), dto.getUserName()));
+            user.setUsername(dto.getUserName());
         }
-
-        if (dto.getNickname() != null) {
-            user.setNickname(dto.getNickname());
+    
+        if (dto.getNickName() != null && !dto.getNickName().equals(user.getNickname())) {
+            changeDetails.append(String.format("昵称: '%s' → '%s'; ", 
+                user.getNickname() != null ? user.getNickname() : "空", dto.getNickName()));
+            user.setNickname(dto.getNickName());
         }
-
-        if (dto.getEmail() != null && !dto.getEmail().isEmpty()) {
+    
+        if (dto.getEmail() != null && !dto.getEmail().isEmpty() && !dto.getEmail().equals(user.getEmail())) {
             // 检查新邮箱是否已存在（排除当前用户）
             if (count(new LambdaQueryWrapper<User>()
                     .eq(User::getEmail, dto.getEmail())
                     .ne(User::getId, userId)) > 0) {
                 throw new IllegalArgumentException("邮箱已被注册");
             }
+            changeDetails.append(String.format("邮箱: '%s' → '%s'; ", 
+                user.getEmail() != null ? user.getEmail() : "空", dto.getEmail()));
             user.setEmail(dto.getEmail());
         }
-
-        if (dto.getAvatarUrl() != null) {
+    
+        if (dto.getAvatarUrl() != null && !dto.getAvatarUrl().equals(user.getAvatarUrl())) {
+            changeDetails.append(String.format("头像URL: '%s' → '%s'; ", 
+                user.getAvatarUrl() != null ? user.getAvatarUrl() : "空", dto.getAvatarUrl()));
             user.setAvatarUrl(dto.getAvatarUrl());
         }
-
-        if (dto.getIntroduction() != null) {
+    
+        if (dto.getIntroduction() != null && !dto.getIntroduction().equals(user.getIntroduction())) {
+            changeDetails.append(String.format("个人简介: '%s' → '%s'; ", 
+                user.getIntroduction() != null ? user.getIntroduction() : "空", dto.getIntroduction()));
             user.setIntroduction(dto.getIntroduction());
         }
-
+    
         // 保存更新后的用户信息
         updateById(user);
+        
+        // 记录详细操作日志
+        if (changeDetails.length() > 0) {
+            String description = String.format("用户 %s 修改了个人信息: %s", 
+                user.getUsername(), changeDetails.toString());
+            
+            operationLogService.saveLog(
+                "用户管理", 
+                "修改", 
+                description,
+                "PUT",
+                "/api/admin/updateUserInfo",
+                dto.toString(),
+                "成功",
+                null,
+                0L
+            );
+        }
     }
 
     @Override
@@ -162,13 +194,25 @@ public class AdminServiceImpl extends ServiceImpl<UserMapper, User> implements I
         return convertToVO(user); // 调用转换方法
     }
 
-    // 添加实体转VO方法（与AdminServiceImpl保持一致）
-    private UserVO convertToVO(User user) {
-        UserVO vo = new UserVO();
-        BeanUtils.copyProperties(user, vo); // 自动复制匹配字段
-        vo.setRole(user.getRole()); // 手动设置扩展字段（如果有）
-        return vo;
-    }
+    // 添加实体转VO方法（手动映射字段）
+private UserVO convertToVO(User user) {
+    UserVO vo = new UserVO();
+    
+    // 手动设置所有字段映射
+    vo.setId(user.getId());
+    vo.setUserName(user.getUsername());        // username -> userName
+    vo.setNickName(user.getNickname());        // nickname -> nickName
+    vo.setPhone(user.getPhone());              // phone 保持不变
+    vo.setEmail(user.getEmail());              // email 保持不变
+    vo.setIntroduction(user.getIntroduction());
+    vo.setAvatarUrl(user.getAvatarUrl());
+    vo.setRole(user.getRole());
+    vo.setStatus(user.getStatus());
+    vo.setCreatedAt(user.getCreatedAt());
+    vo.setLastActiveAt(user.getLastActiveAt());
+    
+    return vo;
+}
 
 
 
@@ -341,28 +385,78 @@ public class AdminServiceImpl extends ServiceImpl<UserMapper, User> implements I
     public void updateUserInfo(Long adminId, Long targetUserId, AdminUpdateDTO dto) {
         // 1. 校验管理员权限
         User admin = getUserWithRoleCheck(adminId, "ADMIN");
-
+    
         // 2. 校验目标用户是否存在
         User targetUser = userMapper.selectById(targetUserId);
         if (targetUser == null) {
             throw new IllegalArgumentException("目标用户不存在");
         }
-
+    
         // 3. 禁止修改超级管理员（可选）
         if ("ADMIN".equals(targetUser.getRole()) && !"ADMIN".equals(admin.getRole())) {
             throw new IllegalArgumentException("无权限修改管理员");
         }
-
-        // 4. 更新用户信息
-        if (dto.getUsername() != null) targetUser.setUsername(dto.getUsername());
-        if (dto.getNickname() != null) targetUser.setNickname(dto.getNickname());
-        if (dto.getEmail() != null) targetUser.setEmail(dto.getEmail());
-        if (dto.getStatus() != null) targetUser.setStatus(dto.getStatus());
-
+    
+        // 4. 记录修改详情
+        StringBuilder changeDetails = new StringBuilder();
+        
+        // 5. 更新用户信息并记录变更
+        if (dto.getUserName() != null && !dto.getUserName().equals(targetUser.getUsername())) {
+            changeDetails.append(String.format("用户名: '%s' → '%s'; ", 
+                targetUser.getUsername(), dto.getUserName()));
+            targetUser.setUsername(dto.getUserName());
+        }
+        
+        if (dto.getNickName() != null && !dto.getNickName().equals(targetUser.getNickname())) {
+            changeDetails.append(String.format("昵称: '%s' → '%s'; ", 
+                targetUser.getNickname() != null ? targetUser.getNickname() : "空", dto.getNickName()));
+            targetUser.setNickname(dto.getNickName());
+        }
+        
+        if (dto.getEmail() != null && !dto.getEmail().equals(targetUser.getEmail())) {
+            changeDetails.append(String.format("邮箱: '%s' → '%s'; ", 
+                targetUser.getEmail() != null ? targetUser.getEmail() : "空", dto.getEmail()));
+            targetUser.setEmail(dto.getEmail());
+        }
+        
+        if (dto.getStatus() != null && !dto.getStatus().equals(targetUser.getStatus())) {
+            changeDetails.append(String.format("状态: '%s' → '%s'; ", 
+                targetUser.getStatus(), dto.getStatus()));
+            targetUser.setStatus(dto.getStatus());
+        }
+        
+        if (dto.getIntroduction() != null && !dto.getIntroduction().equals(targetUser.getIntroduction())) {
+            changeDetails.append(String.format("个人简介: '%s' → '%s'; ", 
+                targetUser.getIntroduction() != null ? targetUser.getIntroduction() : "空", dto.getIntroduction()));
+            targetUser.setIntroduction(dto.getIntroduction());
+        }
+        
+        if (dto.getAvatarUrl() != null && !dto.getAvatarUrl().equals(targetUser.getAvatarUrl())) {
+            changeDetails.append(String.format("头像URL: '%s' → '%s'; ", 
+                targetUser.getAvatarUrl() != null ? targetUser.getAvatarUrl() : "空", dto.getAvatarUrl()));
+            targetUser.setAvatarUrl(dto.getAvatarUrl());
+        }
+    
+        // 6. 保存用户信息
         userMapper.updateById(targetUser);
-
-        // 5. 记录操作日志（可选）
-//        log.info("管理员 {} 修改用户 {} 信息：{}", adminId, targetUserId, dto);
+    
+        // 7. 记录详细操作日志
+        if (changeDetails.length() > 0) {
+            String description = String.format("管理员 %s 修改了用户 %s 的信息: %s", 
+                admin.getUsername(), targetUser.getUsername(), changeDetails.toString());
+            
+            operationLogService.saveLog(
+                "用户管理", 
+                "修改", 
+                description,
+                "PUT",
+                "/api/admin/updateUser/" + targetUserId,
+                dto.toString(),
+                "成功",
+                null,
+                0L
+            );
+        }
     }
 
     // 校验并修改用户密码

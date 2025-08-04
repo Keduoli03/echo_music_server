@@ -44,8 +44,14 @@ public class SongDetailDTO {
     @Schema(description = "歌曲语言", example = "中文")
     private String language;
 
-    @Schema(description = "音乐风格/流派", example = "流行")
+    @Schema(description = "风格/流派")
     private String genre;
+    
+    @Schema(description = "音乐类型ID")
+    private Integer musicType;
+    
+    @Schema(description = "音乐类型名称")
+    private String musicTypeName;
 
     @Schema(description = "歌词内容")
     private String lyrics;
@@ -62,12 +68,11 @@ public class SongDetailDTO {
     @Schema(description = "时长（秒）", example = "240")
     private Integer duration;
 
-    // ====================== 关联信息 ======================
-    @Schema(description = "所属专辑信息")
-    private AlbumInfoDTO album; // 嵌套专辑DTO
+    @Schema(description = "歌手名称（多个歌手用/分割）", example = "周杰伦/林俊杰")
+    private String singerName;
 
-    @Schema(description = "关联歌手列表")
-    private List<SingerInfoDTO> singers; // 嵌套歌手DTO列表
+    @Schema(description = "专辑名称", example = "叶惠美")
+    private String albumName;
 
     // ====================== 扩展字段（可选） ======================
     @Schema(description = "创建时间", example = "2025-06-02T15:00:00", format = "yyyy-MM-dd'T'HH:mm:ss")

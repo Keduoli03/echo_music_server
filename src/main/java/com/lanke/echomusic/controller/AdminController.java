@@ -1,6 +1,7 @@
 package com.lanke.echomusic.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.lanke.echomusic.annotation.OperationLog;  // 添加这行导入
 import com.lanke.echomusic.common.Result;
 import com.lanke.echomusic.dto.user.*;
 import com.lanke.echomusic.service.IAdminService;
@@ -43,22 +44,29 @@ public class AdminController {
     @Operation(summary = "用户登出", description = "通过 JWT 令牌退出登录（从 Redis 中移除令牌）")
     @SecurityRequirement(name = "Authorization")
     @PostMapping("/logout")
-    public Result<Void> logout(@RequestParam String token) {
+    public Result<Void> logout() {
+        String token = requestProcessor.getToken();
         adminService.logout(token);
         return Result.success(); // 移除 try-catch，异常由全局处理器处理
     }
 
     // ------------------------ 更新用户信息 ------------------------
+    @OperationLog(
+        module = "用户管理", 
+        operationType = "修改", 
+        description = "用户修改个人信息",
+        recordParams = true
+    )
     @Operation(summary = "更新用户信息", description = "不包含密码")
     @SecurityRequirement(name = "Authorization")
     @PutMapping("/updateUserInfo")
     public Result<Void> updateProfile(@RequestBody @Valid UserUpdateDTO dto) {
         try {
-            Long userId = requestProcessor.getUserId(); // 直接获取用户ID，错误自动抛出
+            Long userId = requestProcessor.getUserId();
             adminService.updateProfile(userId, dto);
-            return Result.success("更新成功");
+            return Result.success("用户信息修改成功");
         } catch (IllegalArgumentException e) {
-            return Result.error(401, e.getMessage()); // 捕获工具类抛出的异常
+            return Result.error(401, e.getMessage());
         }
     }
 
@@ -149,6 +157,12 @@ public class AdminController {
 
 
     // ------------------------ 管理员修改用户信息 ------------------------
+    @OperationLog(
+        module = "用户管理", 
+        operationType = "修改", 
+        description = "管理员修改用户信息",
+        recordParams = true
+    )
     @Operation(summary = "管理员修改指定用户信息", description = "支持修改用户基本信息（不包含密码）")
     @SecurityRequirement(name = "Authorization")
     @PutMapping("/updateUser/{userId}")

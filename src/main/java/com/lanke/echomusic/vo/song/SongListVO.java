@@ -22,6 +22,12 @@ public class SongListVO {
     private Integer duration;
     @Schema(description = "风格/流派")
     private String genre;
+    
+    @Schema(description = "音乐类型ID")
+    private Integer musicType;
+    
+    @Schema(description = "音乐类型名称")
+    private String musicTypeName;
     @Schema(description = "语言")
     private String language;
     @Schema(description = "播放次数")

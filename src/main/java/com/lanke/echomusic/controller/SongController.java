@@ -5,16 +5,26 @@ import com.lanke.echomusic.dto.song.SongDetailDTO;
 import com.lanke.echomusic.dto.song.SongInfoDTO;
 import com.lanke.echomusic.dto.song.SongSearchDTO;
 import com.lanke.echomusic.dto.song.UpdateSongDTO;
+import com.lanke.echomusic.service.IUserLikeService;
+import com.lanke.echomusic.utils.RequestProcessor;
 import com.lanke.echomusic.vo.song.SongPageVO;
 import com.lanke.echomusic.annotation.OperationLog;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+
+import java.util.List;
+import java.util.Map;
+
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.stereotype.Controller;
+
+import com.lanke.echomusic.service.IMusicTypeService;
 import com.lanke.echomusic.service.ISongService;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -35,6 +45,9 @@ public class SongController {
 
     @Autowired
     private ISongService songService;
+
+    @Autowired
+    private IMusicTypeService musicTypeService;
 
     @Operation(summary = "创建歌曲信息", description = "创建新歌曲的基本信息，不包含文件上传")
     @OperationLog(
@@ -175,5 +188,73 @@ public class SongController {
         } catch (Exception e) {
             return Result.error("更新失败：" + e.getMessage());
         }
+    }
+
+    @Autowired
+    private IUserLikeService userLikeService;
+    
+    @Autowired
+    private RequestProcessor requestProcessor;
+
+    /**
+     * 用户喜欢/取消喜欢歌曲
+     */
+    @PostMapping("/like/{songId}")
+    @Operation(summary = "喜欢/取消喜欢歌曲", description = "用户喜欢或取消喜欢指定歌曲")
+    @SecurityRequirement(name = "Authorization")
+    @OperationLog(module = "歌曲管理", operationType = "喜欢操作", description = "用户喜欢/取消喜欢歌曲")
+    public Result<Boolean> toggleLike(
+            @Parameter(description = "歌曲ID", required = true)
+            @PathVariable Long songId) {
+        Long userId = requestProcessor.getUserId();
+        boolean isLiked = userLikeService.toggleLike(userId, songId);
+        return Result.success(isLiked ? "喜欢成功" : "取消喜欢成功", isLiked);
+    }
+
+    /**
+     * 检查用户是否喜欢某首歌曲
+     */
+    @GetMapping("/like/check/{songId}")
+    @Operation(summary = "检查是否喜欢歌曲", description = "检查当前用户是否喜欢指定歌曲")
+    @SecurityRequirement(name = "Authorization")
+    public Result<Boolean> checkLike(
+            @Parameter(description = "歌曲ID", required = true)
+            @PathVariable Long songId) {
+        Long userId = requestProcessor.getUserId();
+        boolean isLiked = userLikeService.isLiked(userId, songId);
+        return Result.success(isLiked);
+    }
+
+    /**
+     * 获取用户喜欢的歌曲列表
+     */
+    @GetMapping("/like/list")
+    @Operation(summary = "获取用户喜欢的歌曲列表", description = "分页获取当前用户喜欢的歌曲列表")
+    @SecurityRequirement(name = "Authorization")
+    public Result<?> getUserLikedSongs(
+            @Parameter(description = "当前页码", example = "1")
+            @RequestParam(defaultValue = "1") Long current,
+            @Parameter(description = "每页大小", example = "10")
+            @RequestParam(defaultValue = "10") Long size) {
+        Long userId = requestProcessor.getUserId();
+        return Result.success(userLikeService.getUserLikedSongs(userId, current, size));
+    }
+
+    /**
+     * 获取用户喜欢的歌曲ID列表
+     */
+    @GetMapping("/like/ids")
+    @Operation(summary = "获取用户喜欢的歌曲ID列表", description = "获取当前用户喜欢的所有歌曲ID")
+    @SecurityRequirement(name = "Authorization")
+    public Result<?> getUserLikedSongIds() {
+        Long userId = requestProcessor.getUserId();
+        return Result.success(userLikeService.getUserLikedSongIds(userId));
+    }
+
+    @Operation(summary = "获取音乐类型列表", description = "获取所有可用的音乐类型")
+    @GetMapping("/musicTypes")
+    public Result<List<Map<String, Object>>> getAllMusicTypes() {
+        List<Map<String, Object>> musicTypes = musicTypeService.getAllActiveMusicTypes();
+        return Result.success("获取成功", musicTypes);
     }
 }

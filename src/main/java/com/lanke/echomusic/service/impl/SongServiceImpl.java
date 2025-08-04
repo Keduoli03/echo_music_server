@@ -12,6 +12,7 @@ import com.lanke.echomusic.dto.song.SongDetailDTO;
 import com.lanke.echomusic.dto.song.SongInfoDTO;
 import com.lanke.echomusic.dto.song.UpdateSongDTO;
 import com.lanke.echomusic.entity.Album;
+import com.lanke.echomusic.entity.MusicType;
 import com.lanke.echomusic.entity.Singer;
 import com.lanke.echomusic.entity.Song;
 import com.lanke.echomusic.entity.SongSinger;
@@ -56,6 +57,8 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
     private SingerMapper singerMapper;
     @Autowired
     private AlbumMapper albumMapper;
+    @Autowired 
+    private IMusicTypeService musicTypeService;
 
     private static final Logger log = LoggerFactory.getLogger(SongServiceImpl.class);
     @Override
@@ -161,19 +164,21 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
      */
     private Song buildSongEntity(SongInfoDTO dto, Long albumId) {
         Song song = new Song();
-        BeanUtils.copyProperties(dto, song);
-        
-        // 手动设置歌曲名称字段
         song.setName(dto.getSongName());
-        
+        song.setOriginalName(dto.getOriginalName());
         song.setAlbumId(albumId);
-        
-        // 设置播放URL，如果为空则设置默认值
-        song.setPlayUrl(dto.getPlayUrl() != null ? dto.getPlayUrl() : "");
-        
-        // 修复Status类型转换：Integer转Byte（使用包装类自动拆箱）
-        song.setStatus(dto.getStatus() != null ? dto.getStatus().byteValue() : (byte) 1);
-    
+        song.setReleaseDate(dto.getReleaseDate());
+        song.setGenre(dto.getGenre());
+        song.setMusicType(dto.getMusicType());  // 新增
+        song.setLanguage(dto.getLanguage());
+        song.setLyricist(dto.getLyricist());
+        song.setComposer(dto.getComposer());
+        song.setArranger(dto.getArranger());
+        song.setLyrics(dto.getLyrics());
+        song.setPlayUrl(dto.getPlayUrl());
+        song.setCoverUrl(dto.getCoverUrl());
+        song.setStatus(dto.getStatus() != null ? dto.getStatus() : 1);
+        song.setDuration(dto.getDuration());
         song.setPlayCount(0L);
         song.setLikeCount(0L);
         song.setCreatedAt(LocalDateTime.now());
@@ -181,32 +186,6 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
         return song;
     }
 
-    /**
-     * 批量绑定歌手关联（修复类型问题并使用Service批量插入）
-     */
-    private void bindSongSingers(Long songId, List<Long> singerIds) {
-        if (CollectionUtils.isEmpty(singerIds)) return;
-
-        List<SongSinger> songSingers = singerIds.stream()
-                .map(singerId -> {
-                    SongSinger ss = new SongSinger();
-                    ss.setSongId(songId);
-                    ss.setSingerId(singerId);
-
-                    // 假设SongSinger.singerType为Integer类型（与数据库tinyint兼容）
-                    ss.setSingerType(1); // 直接使用Integer，避免Byte转换错误
-
-                    ss.setSort(singerIds.indexOf(singerId)); // 按顺序排序
-                    return ss;
-                })
-                .collect(Collectors.toList());
-
-        // 使用Service的批量插入方法
-        songSingerService.saveBatch(songSingers);
-    }
-
-
-    //获取歌曲信息
     @Override
     public SongDetailDTO getSongDetail(Long songId) {
         Song song = getById(songId);
@@ -216,20 +195,34 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
 
         SongDetailDTO detail = new SongDetailDTO();
         BeanUtils.copyProperties(song, detail);
+        
+        // 手动设置歌曲名称（字段名不匹配）
+        detail.setSongName(song.getName());
 
-        // 处理专辑信息
-        if (song.getAlbumId() != null) {
-            Album album = albumService.getById(song.getAlbumId());
-            if (album != null) {
-                AlbumInfoDTO albumDTO = new AlbumInfoDTO();
-                BeanUtils.copyProperties(album, albumDTO);
-                detail.setAlbum(albumDTO);
+        // 处理音乐类型名称
+        if (song.getMusicType() != null) {
+            MusicType musicType = musicTypeService.getById(song.getMusicType());
+            if (musicType != null) {
+                detail.setMusicTypeName(musicType.getName());
             }
         }
 
-        // 处理歌手信息
+        // 处理专辑名称
+        if (song.getAlbumId() != null) {
+            Album album = albumService.getById(song.getAlbumId());
+            if (album != null) {
+                detail.setAlbumName(album.getName());
+            }
+        }
+
+        // 处理歌手名称（生成用/分割的字符串）
         List<SingerInfoDTO> singers = getSingersBySongId(songId);
-        detail.setSingers(singers);
+        if (singers != null && !singers.isEmpty()) {
+            String singerName = singers.stream()
+                    .map(SingerInfoDTO::getName)
+                    .collect(Collectors.joining("/"));
+            detail.setSingerName(singerName);
+        }
 
         return detail;
     }
@@ -401,12 +394,15 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
         // 3. 复制非空属性到现有歌曲实体
         BeanUtils.copyProperties(dto, existingSong, getNullPropertyNames(dto));
         
-        // 4. 手动设置特殊字段
+        // 4. 设置类型、专辑等
         if (dto.getSongName() != null) {
             existingSong.setName(dto.getSongName());
         }
         if (newAlbumId != null) {
             existingSong.setAlbumId(newAlbumId);
+        }
+        if (dto.getMusicType() != null) {
+            existingSong.setMusicType(dto.getMusicType());
         }
     
         // 5. 更新歌曲基本信息
@@ -510,8 +506,33 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
         return emptyNames.toArray(result);
     }
 
+     /**
+     * 批量绑定歌曲和歌手的关联关系
+     */
+    private void bindSongSingers(Long songId, List<Long> singerIds) {
+        if (songId == null || CollectionUtils.isEmpty(singerIds)) {
+            return;
+        }
+        
+        // 创建歌曲-歌手关联记录
+        List<SongSinger> songSingers = singerIds.stream()
+                .map(singerId -> {
+                    SongSinger songSinger = new SongSinger();
+                    songSinger.setSongId(songId);
+                    songSinger.setSingerId(singerId);
+                    songSinger.setSort(0); // 默认排序
+                    return songSinger;
+                })
+                .collect(Collectors.toList());
+        
+        // 批量插入关联记录
+        songSingerService.saveBatch(songSingers);
+        
+        log.info("成功绑定歌曲ID: {} 与 {} 个歌手的关联关系", songId, singerIds.size());
+    }
 
 }
 
+   
 
 

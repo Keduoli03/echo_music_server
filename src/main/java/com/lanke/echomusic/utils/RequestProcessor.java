@@ -89,4 +89,17 @@ public class RequestProcessor {
             return Result.error(401, "用户ID格式错误");
         }
     }
+
+    /**
+     * 获取当前请求的 token（简化版）：直接返回 token，错误时抛出异常
+     * @return token 字符串
+     * @throws IllegalArgumentException 当授权头无效时抛出
+     */
+    public String getToken() {
+        String authorizationHeader = request.getHeader("Authorization");
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("无效的授权头");
+        }
+        return authorizationHeader.substring(7);
+    }
 }

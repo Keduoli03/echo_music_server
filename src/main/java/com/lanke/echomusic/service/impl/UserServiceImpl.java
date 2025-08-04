@@ -46,25 +46,45 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
     @Override
     public String login(String usernameOrEmail, String password) {
+        // 1. 查找用户
         User user = findUserByUsernameOrEmail(usernameOrEmail);
-        // 1. 用户不存在或密码错误
         if (user == null) {
-            throw new BadCredentialsException("用户名或邮箱不存在"); // 明确异常类型
+            throw new BadCredentialsException("用户名或邮箱不存在");
         }
+
+        // 2. 验证密码
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new BadCredentialsException("密码错误"); // 明确异常类型
+            throw new BadCredentialsException("密码错误");
         }
 
-        // 2. 用户被禁用
+        // 3. 检查用户状态
         if (user.getStatus() == 0) {
-            throw new IllegalStateException("用户已被禁用"); // 或自定义异常
+            throw new BadCredentialsException("账户已被禁用");
         }
 
-        user.setLastActiveAt(LocalDateTime.now());
-        updateById(user);
-
+        // 4. 生成并保存 Token
         String token = generateToken(user);
         saveTokenToRedis(token, user);
+        
+        // 5. 手动记录登录日志
+        try {
+            // 需要先注入 IOperationLogService
+            // operationLogService.saveLog(
+            //     "用户认证",
+            //     "登录", 
+            //     String.format("用户 %s 登录系统", user.getUsername()),
+            //     "POST",
+            //     "/api/user/login",
+            //     String.format("[{\"usernameOrEmail\":\"%s\"}]", usernameOrEmail),
+            //     "成功",
+            //     null,
+            //     0L
+            // );
+        } catch (Exception e) {
+            // 日志记录失败不影响登录流程
+            System.err.println("记录登录日志失败: " + e.getMessage());
+        }
+        
         return token;
     }
 
@@ -108,22 +128,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         if (user == null) {
             throw new IllegalArgumentException("用户不存在");
         }
-
+    
         // 更新用户信息（只更新DTO中提供的字段）
-        if (dto.getUsername() != null && !dto.getUsername().isEmpty()) {
+        if (dto.getUserName() != null && !dto.getUserName().isEmpty()) {  // 改为 getUserName()
             // 检查新用户名是否已存在（排除当前用户）
             if (count(new LambdaQueryWrapper<User>()
-                    .eq(User::getUsername, dto.getUsername())
+                    .eq(User::getUsername, dto.getUserName())  // 改为 getUserName()
                     .ne(User::getId, userId)) > 0) {
                 throw new IllegalArgumentException("用户名已被使用");
             }
-            user.setUsername(dto.getUsername());
+            user.setUsername(dto.getUserName());  // 改为 getUserName()
         }
-
-        if (dto.getNickname() != null) {
-            user.setNickname(dto.getNickname());
+    
+        if (dto.getNickName() != null) {  // 改为 getNickName()
+            user.setNickname(dto.getNickName());  // 改为 getNickName()
         }
-
+    
         if (dto.getEmail() != null && !dto.getEmail().isEmpty()) {
             // 检查新邮箱是否已存在（排除当前用户）
             if (count(new LambdaQueryWrapper<User>()
@@ -133,15 +153,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             }
             user.setEmail(dto.getEmail());
         }
-
+    
         if (dto.getAvatarUrl() != null) {
             user.setAvatarUrl(dto.getAvatarUrl());
         }
-
+    
         if (dto.getIntroduction() != null) {
             user.setIntroduction(dto.getIntroduction());
         }
-
+    
         // 保存更新后的用户信息
         updateById(user);
     }
@@ -155,11 +175,23 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         return convertToVO(user); // 调用转换方法
     }
 
-    // 添加实体转VO方法（与AdminServiceImpl保持一致）
+    // 添加实体转VO方法（手动映射字段）
     private UserVO convertToVO(User user) {
         UserVO vo = new UserVO();
-        BeanUtils.copyProperties(user, vo); // 自动复制匹配字段
-        vo.setRole(user.getRole()); // 手动设置扩展字段（如果有）
+        
+        // 手动设置所有字段映射
+        vo.setId(user.getId());
+        vo.setUserName(user.getUsername());        // username -> userName
+        vo.setNickName(user.getNickname());        // nickname -> nickName
+        vo.setPhone(user.getPhone());              // phone 保持不变
+        vo.setEmail(user.getEmail());              // email 保持不变
+        vo.setIntroduction(user.getIntroduction());
+        vo.setAvatarUrl(user.getAvatarUrl());
+        vo.setRole(user.getRole());
+        vo.setStatus(user.getStatus());
+        vo.setCreatedAt(user.getCreatedAt());
+        vo.setLastActiveAt(user.getLastActiveAt());
+        
         return vo;
     }
 

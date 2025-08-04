@@ -7,6 +7,7 @@ import com.lanke.echomusic.dto.user.UserUpdateDTO;
 import com.lanke.echomusic.service.IUserService;
 import com.lanke.echomusic.utils.RequestProcessor;
 import com.lanke.echomusic.vo.UserVO;
+import com.lanke.echomusic.annotation.OperationLog;  // 添加这个导入
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,19 +33,26 @@ public class UserController {
 
     // ------------------------ 登录/登出 ------------------------
     @Operation(summary = "用户登录", description = "通过用户名/邮箱和密码获取 JWT 令牌")
+    @OperationLog(
+        module = "用户认证", 
+        operationType = "登录", 
+        description = "用户登录系统",
+        recordParams = true
+    )
     @PostMapping("/login")
     public Result<String> login(@RequestBody @Valid LoginDTO loginDTO) {
         String token = userService.login(
                 loginDTO.getUsernameOrEmail(),
                 loginDTO.getPassword()
         );
-        return Result.success("登录成功", token); // 移除 try-catch，异常由全局处理器处理
+        return Result.success("登录成功", token);
     }
 
     @Operation(summary = "用户登出", description = "通过 JWT 令牌退出登录（从 Redis 中移除令牌）")
     @SecurityRequirement(name = "Authorization")
     @PostMapping("/logout")
-    public Result<Void> logout(@RequestParam String token) {
+    public Result<Void> logout() {
+        String token = requestProcessor.getToken();
         userService.logout(token);
         return Result.success(); // 移除 try-catch，异常由全局处理器处理
     }

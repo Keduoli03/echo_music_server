@@ -1,7 +1,9 @@
 package com.lanke.echomusic.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import com.lanke.echomusic.dto.playlist.PlaylistSearchDTO;
 import com.lanke.echomusic.dto.playlist.PlaylistUpdateDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,15 +11,23 @@ import com.lanke.echomusic.entity.Playlist;
 import com.lanke.echomusic.entity.User;
 import com.lanke.echomusic.mapper.PlaylistMapper;
 import com.lanke.echomusic.mapper.UserMapper;
+import com.lanke.echomusic.service.IMusicTypeService;
+import com.lanke.echomusic.service.IPlaylistCategoryService;
 import com.lanke.echomusic.service.IPlaylistService;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanke.echomusic.service.MinioService;
+import com.lanke.echomusic.vo.playlist.PlaylistListVO;
+import com.lanke.echomusic.vo.playlist.PlaylistPageVO;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -191,5 +201,35 @@ public class PlaylistServiceImpl extends ServiceImpl<PlaylistMapper, Playlist> i
     }
 
 
+    @Override
+    public PlaylistPageVO searchPlaylists(PlaylistSearchDTO dto) {
+        Page<PlaylistListVO> page = new Page<>(dto.getCurrent(), dto.getSize());
+        IPage<PlaylistListVO> resultPage = baseMapper.searchPlaylists(page, dto);
+        
+        PlaylistPageVO pageVO = new PlaylistPageVO();
+        pageVO.setCurrent(resultPage.getCurrent());
+        pageVO.setSize(resultPage.getSize());
+        pageVO.setTotal(resultPage.getTotal());
+        pageVO.setRecords(resultPage.getRecords());
+        
+        return pageVO;
+    }
+
+    @Autowired
+    private IMusicTypeService musicTypeService;
+
+    @Autowired
+    private IPlaylistCategoryService playlistCategoryService;
+
+    
+    @Override
+    public List<Map<String, Object>> getAllMusicTypes() {
+        return musicTypeService.getAllActiveMusicTypes();
+    }
+
+    @Override
+    public List<Map<String, Object>> getAllPlaylistCategories() {
+        return playlistCategoryService.getAllActiveCategories();
+    }
 }
 

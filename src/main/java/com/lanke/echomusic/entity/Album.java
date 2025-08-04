@@ -45,7 +45,15 @@ public class Album implements Serializable {
     /**
      * 类型（1-专辑，2-EP，3-单曲）
      */
-    private Byte type;
+    /**
+     * 专辑类型（1-录音室专辑，2-现场专辑，3-精选集，4-EP，5-单曲）
+     */
+    private Integer type;
+
+    /**
+     * 状态（1-启用，0-禁用）
+     */
+    private Integer status;
 
     /**
      * 专辑描述
@@ -57,10 +65,7 @@ public class Album implements Serializable {
      */
     private String coverUrl;
 
-    /**
-     * 状态（0-下架，1-上架）
-     */
-    private Byte status;
+    // 删除重复的 private Byte status; 字段（第71行）
 
     /**
      * 创建时间
@@ -104,13 +109,31 @@ public class Album implements Serializable {
         this.releaseDate = releaseDate;
     }
 
-    public Byte getType() {
+    public Integer getType() {
         return type;
     }
 
-    public void setType(Byte type) {
+    public void setType(Integer type) {
         this.type = type;
     }
+
+    // 保留 Integer 类型的 getter/setter
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+    // 删除重复的 Byte 类型方法 - 移除以下代码：
+    // public Byte getStatus() {
+    //     return status;
+    // }
+    // 
+    // public void setStatus(Byte status) {
+    //     this.status = status;
+    // }
 
     public String getDescription() {
         return description;
@@ -126,14 +149,6 @@ public class Album implements Serializable {
 
     public void setCoverUrl(String coverUrl) {
         this.coverUrl = coverUrl;
-    }
-
-    public Byte getStatus() {
-        return status;
-    }
-
-    public void setStatus(Byte status) {
-        this.status = status;
     }
 
     public LocalDateTime getCreatedAt() {

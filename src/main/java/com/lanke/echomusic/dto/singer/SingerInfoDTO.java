@@ -42,4 +42,6 @@ public class SingerInfoDTO {
     @Schema(description = "状态（1-启用，0-禁用）", example = "1")
     private Integer status;
 
+    @Schema(description = "歌手类型（1-个人歌手，2-乐队/组合）", example = "1")
+    private Integer singerType;
 }

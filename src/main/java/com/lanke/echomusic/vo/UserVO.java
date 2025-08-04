@@ -13,16 +13,16 @@ public class UserVO {
     private Long id;
 
     @Schema(description = "用户名")
-    private String username;
+    private String userName;  // 改为驼峰命名
 
     @Schema(description = "昵称")
-    private String nickname;
+    private String nickName;  // 改为驼峰命名
 
     @Schema(description = "手机号")
-    private String phone;
+    private String phone;  // 改为更标准的驼峰命名
 
     @Schema(description = "邮箱")
-    private String email;
+    private String email;  // 改为更标准的驼峰命名
 
     @Schema(description = "简介")
     private String introduction;

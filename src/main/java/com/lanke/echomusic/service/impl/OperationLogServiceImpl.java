@@ -35,13 +35,36 @@ public class OperationLogServiceImpl extends ServiceImpl<OperationLogMapper, Ope
         try {
             OperationLog log = new OperationLog();
             
-            // 获取当前用户信息
-            Long userId = requestProcessor.getUserId();
-            String username = requestProcessor.getUsername();
+            // 获取当前用户信息（处理登录等无认证场景）
+            Long userId = null;
+            String username = null;
+            String userRole = "GUEST";
             
-            // 获取用户详细信息
-            UserVO userVO = userService.getProfile(userId);  // 使用getProfile方法
-            String userRole = userVO != null ? userVO.getRole() : "UNKNOWN";
+            try {
+                userId = requestProcessor.getUserId();
+                username = requestProcessor.getUsername();
+                
+                // 获取用户详细信息
+                UserVO userVO = userService.getProfile(userId);
+                userRole = userVO != null ? userVO.getRole() : "UNKNOWN";
+            } catch (Exception e) {
+                // 对于登录等操作，无法获取用户信息是正常的
+                // 尝试从请求参数中提取用户名（适用于登录场景）
+                if (requestParams != null && requestParams.contains("usernameOrEmail")) {
+                    try {
+                        // 简单解析登录参数中的用户名
+                        String[] parts = requestParams.split(",");
+                        for (String part : parts) {
+                            if (part.contains("usernameOrEmail")) {
+                                username = part.split(":")[1].replaceAll("[\"\\[\\]]", "").trim();
+                                break;
+                            }
+                        }
+                    } catch (Exception parseException) {
+                        // 解析失败，使用默认值
+                    }
+                }
+            }
             
             log.setUserId(userId);
             log.setUsername(username);
@@ -69,6 +92,7 @@ public class OperationLogServiceImpl extends ServiceImpl<OperationLogMapper, Ope
         } catch (Exception e) {
             // 记录日志保存失败，但不影响业务流程
             System.err.println("保存操作日志失败: " + e.getMessage());
+            e.printStackTrace(); // 添加堆栈跟踪以便调试
         }
     }
 

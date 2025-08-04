@@ -10,6 +10,9 @@ import com.lanke.echomusic.vo.singer.SingerPageVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+import java.util.List;
+import java.util.Map;
+
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -106,5 +109,32 @@ public class SingerController {
     public Result<SingerPageVO> getSingersPage(@ParameterObject SingerSearchDTO dto) {
         SingerPageVO result = singerService.getSingersPage(dto);
         return Result.success("获取成功", result);
+    }
+
+    @Operation(summary = "获取歌手详细信息", description = "根据歌手ID获取歌手的详细信息")
+    @GetMapping("/detail/{id}")
+    public Result<SingerInfoDTO> getSingerDetail(@PathVariable Long id) {
+        try {
+            SingerInfoDTO singer = singerService.getSingerById(id);
+            return Result.success("获取成功", singer);
+        } catch (IllegalArgumentException e) {
+            return Result.error(e.getMessage());
+        } catch (Exception e) {
+            return Result.error("获取失败：" + e.getMessage());
+        }
+    }
+
+    @Operation(summary = "获取国籍选项", description = "获取所有歌手的国籍列表，用于前端筛选")
+    @GetMapping("/nationalities")
+    public Result<List<String>> getAllNationalities() {
+        List<String> nationalities = singerService.getAllNationalities();
+        return Result.success("获取成功", nationalities);
+    }
+
+    @Operation(summary = "获取歌手类型选项", description = "获取歌手类型映射")
+    @GetMapping("/types")
+    public Result<Map<Integer, String>> getSingerTypes() {
+        Map<Integer, String> types = singerService.getSingerTypes();
+        return Result.success("获取成功", types);
     }
 }
