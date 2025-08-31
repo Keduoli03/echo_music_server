@@ -12,6 +12,7 @@ import com.lanke.echomusic.vo.playlist.PlaylistPageVO;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 
 import java.util.List;
@@ -33,6 +34,7 @@ import org.springframework.web.multipart.MultipartFile;
  * @since 2025-06-04
  */
 @RestController
+@Tag(name = "歌单管理", description = "歌单信息维护")
 @RequestMapping("/api/playlist")
 public class PlaylistController {
 

@@ -1,5 +1,84 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lanke.echomusic.mapper.PlaylistSongMapper">
-
+    
+    <select id="searchPlaylistSongs" resultType="com.lanke.echomusic.vo.playlist.PlaylistSongListVO">
+        SELECT 
+            ps.id,
+            ps.song_id as songId,
+            s.name as songName,
+            GROUP_CONCAT(DISTINCT si.name ORDER BY ss.sort SEPARATOR '/') as singerName,
+            a.name as albumName,
+            s.duration,
+            s.genre,
+            s.music_type as musicType,
+            CASE s.music_type
+                WHEN 1 THEN '华语流行'
+                WHEN 2 THEN '欧美流行'
+                WHEN 3 THEN '日韩流行'
+                WHEN 4 THEN '古典音乐'
+                WHEN 5 THEN '民谣'
+                WHEN 6 THEN '摇滚'
+                WHEN 7 THEN '电子音乐'
+                WHEN 8 THEN '说唱'
+                WHEN 9 THEN '爵士'
+                WHEN 10 THEN '其他'
+                ELSE '未分类'
+            END as musicTypeName,
+            s.language,
+            s.play_count as playCount,
+            s.like_count as likeCount,
+            s.release_date as releaseDate,
+            s.cover_url as coverUrl,
+            s.play_url as playUrl,
+            ps.sort,
+            ps.add_time as addTime,
+            s.status
+        FROM l_playlist_song ps
+        LEFT JOIN l_song s ON ps.song_id = s.id
+        LEFT JOIN l_album a ON s.album_id = a.id
+        LEFT JOIN l_song_singer ss ON s.id = ss.song_id
+        LEFT JOIN l_singer si ON ss.singer_id = si.id
+        <where>
+            ps.playlist_id = #{dto.playlistId}
+            <if test="dto.songName != null and dto.songName != ''">
+                AND s.name LIKE CONCAT('%', #{dto.songName}, '%')
+            </if>
+            <if test="dto.singerName != null and dto.singerName != ''">
+                AND si.name LIKE CONCAT('%', #{dto.singerName}, '%')
+            </if>
+            <if test="dto.albumName != null and dto.albumName != ''">
+                AND a.name LIKE CONCAT('%', #{dto.albumName}, '%')
+            </if>
+        </where>
+        GROUP BY ps.id, ps.song_id, s.name, a.name, s.duration, s.genre, s.music_type, 
+                 s.language, s.play_count, s.like_count, s.release_date, s.cover_url, 
+                 s.play_url, ps.sort, ps.add_time, s.status
+        <choose>
+            <when test="dto.orderBy == 'sort'">
+                ORDER BY ps.sort
+            </when>
+            <when test="dto.orderBy == 'songName'">
+                ORDER BY s.name
+            </when>
+            <otherwise>
+                ORDER BY ps.add_time
+            </otherwise>
+        </choose>
+        <choose>
+            <when test="dto.orderDirection == 'asc'">
+                ASC
+            </when>
+            <otherwise>
+                DESC
+            </otherwise>
+        </choose>
+    </select>
+    
+    <select id="selectMaxSortByPlaylistId" resultType="java.lang.Integer">
+        SELECT COALESCE(MAX(sort), 0)
+        FROM l_playlist_song
+        WHERE playlist_id = #{playlistId}
+    </select>
+    
 </mapper>

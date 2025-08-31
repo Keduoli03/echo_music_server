@@ -106,6 +106,12 @@ public class PlaylistServiceImpl extends ServiceImpl<PlaylistMapper, Playlist> i
         if (dto.getIsPublic() != null) {
             playlist.setIsPublic(dto.getIsPublic().byteValue());
         }
+        if (dto.getMusicType() != null) {
+            playlist.setMusicType(dto.getMusicType());
+        }
+        if (dto.getPlaylistCategory() != null) {
+            playlist.setPlaylistCategory(dto.getPlaylistCategory());
+        }
 
         // 更新修改时间
         playlist.setUpdateTime(LocalDateTime.now());
