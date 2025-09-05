@@ -1,12 +1,11 @@
 package com.lanke.echomusic.dto.song;
 
-import com.lanke.echomusic.dto.album.AlbumInfoDTO;
-import com.lanke.echomusic.dto.singer.SingerInfoDTO;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.time.LocalDate;
-import java.util.List;
+
 
 /**
  * <p>歌曲详情DTO</p>

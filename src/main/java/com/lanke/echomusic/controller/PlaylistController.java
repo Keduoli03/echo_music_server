@@ -11,6 +11,7 @@ import com.lanke.echomusic.utils.RequestProcessor;
 import com.lanke.echomusic.vo.playlist.PlaylistPageVO;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
@@ -20,10 +21,12 @@ import java.util.Map;
 
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.lanke.echomusic.service.IUserPlaylistLikeService;
 
 /**
  * <p>
@@ -153,6 +156,20 @@ public class PlaylistController {
         return Result.success("获取成功", categories);
     }
 
+    @Operation(summary = "获取歌单详情", description = "根据歌单ID获取歌单的基本信息，不包括歌曲列表")
+    @GetMapping("/detail/{id}")
+    public Result<Playlist> getPlaylistDetail(@PathVariable Long id) {
+        try {
+            Playlist playlist = playlistService.getById(id);
+            if (playlist == null) {
+                return Result.error(404, "歌单不存在");
+            }
+            return Result.success("获取成功", playlist);
+        } catch (Exception e) {
+            return Result.error(500, "获取失败：" + e.getMessage());
+        }
+    }
+
     /**
      * 校验文件类型是否为支持的图片格式
      */
@@ -163,5 +180,80 @@ public class PlaylistController {
                         contentType.equals("image/png") ||
                         contentType.equals("image/gif")
         );
+    }
+
+    @Autowired
+    private IUserPlaylistLikeService userPlaylistLikeService;
+    
+    /**
+     * 用户收藏/取消收藏歌单
+     */
+    @PostMapping("/like/{playlistId}")
+    @Operation(summary = "收藏/取消收藏歌单", description = "用户收藏或取消收藏指定歌单")
+    @SecurityRequirement(name = "Authorization")
+    public Result<Boolean> toggleLike(
+            @Parameter(description = "歌单ID", required = true)
+            @PathVariable Long playlistId) {
+        try {
+            Long userId = requestProcessor.getUserId();
+            boolean isLiked = userPlaylistLikeService.toggleLike(userId, playlistId);
+            return Result.success(isLiked ? "收藏成功" : "取消收藏成功", isLiked);
+        } catch (IllegalArgumentException e) {
+            return Result.error(400, e.getMessage());
+        } catch (Exception e) {
+            return Result.error(500, "操作失败：" + e.getMessage());
+        }
+    }
+    
+    /**
+     * 检查用户是否收藏某个歌单
+     */
+    @GetMapping("/like/check/{playlistId}")
+    @Operation(summary = "检查是否收藏歌单", description = "检查当前用户是否收藏指定歌单")
+    @SecurityRequirement(name = "Authorization")
+    public Result<Boolean> checkLike(
+            @Parameter(description = "歌单ID", required = true)
+            @PathVariable Long playlistId) {
+        try {
+            Long userId = requestProcessor.getUserId();
+            boolean isLiked = userPlaylistLikeService.isLiked(userId, playlistId);
+            return Result.success(isLiked);
+        } catch (Exception e) {
+            return Result.error(500, "查询失败：" + e.getMessage());
+        }
+    }
+    
+    /**
+     * 获取用户收藏的歌单列表
+     */
+    @GetMapping("/like/list")
+    @Operation(summary = "获取用户收藏的歌单列表", description = "分页获取当前用户收藏的歌单列表")
+    @SecurityRequirement(name = "Authorization")
+    public Result<?> getUserLikedPlaylists(
+            @Parameter(description = "当前页码", example = "1")
+            @RequestParam(defaultValue = "1") Long current,
+            @Parameter(description = "每页大小", example = "10")
+            @RequestParam(defaultValue = "10") Long size) {
+        try {
+            Long userId = requestProcessor.getUserId();
+            return Result.success(userPlaylistLikeService.getUserLikedPlaylists(userId, current, size));
+        } catch (Exception e) {
+            return Result.error(500, "获取失败：" + e.getMessage());
+        }
+    }
+    
+    /**
+     * 获取用户收藏的歌单ID列表
+     */
+    @GetMapping("/like/ids")
+    @Operation(summary = "获取用户收藏的歌单ID列表", description = "获取当前用户收藏的所有歌单ID")
+    @SecurityRequirement(name = "Authorization")
+    public Result<?> getUserLikedPlaylistIds() {
+        try {
+            Long userId = requestProcessor.getUserId();
+            return Result.success(userPlaylistLikeService.getUserLikedPlaylistIds(userId));
+        } catch (Exception e) {
+            return Result.error(500, "获取失败：" + e.getMessage());
+        }
     }
 }

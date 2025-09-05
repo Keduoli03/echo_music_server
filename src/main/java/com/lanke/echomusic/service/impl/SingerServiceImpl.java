@@ -36,7 +36,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.lanke.echomusic.annotation.OperationLog;
 
 @Service
 public class SingerServiceImpl extends ServiceImpl<SingerMapper, Singer> implements ISingerService {

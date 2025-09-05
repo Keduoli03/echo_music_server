@@ -1,6 +1,4 @@
 package com.lanke.echomusic.service;
-
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.lanke.echomusic.dto.album.AlbumInfoDTO;
 import com.lanke.echomusic.dto.album.AlbumSearchDTO;
 import com.lanke.echomusic.entity.Album;

@@ -11,7 +11,6 @@ import com.lanke.echomusic.service.IUserService;
 import com.lanke.echomusic.service.MinioService;
 import com.lanke.echomusic.utils.JwtUtil;
 import com.lanke.echomusic.vo.UserVO;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -21,7 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;

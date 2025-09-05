@@ -3,8 +3,6 @@ package com.lanke.echomusic.service.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lanke.echomusic.dto.song.SongSearchDTO;
-import com.lanke.echomusic.mapper.AlbumMapper;
-import com.lanke.echomusic.mapper.SingerMapper;
 import com.lanke.echomusic.utils.AudioUtils;
 import com.lanke.echomusic.dto.album.AlbumInfoDTO;
 import com.lanke.echomusic.dto.singer.SingerInfoDTO;
@@ -53,10 +51,6 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
     @Autowired private MinioService minioService;
     @Autowired
     private SongSingerMapper songSingerMapper;
-    @Autowired
-    private SingerMapper singerMapper;
-    @Autowired
-    private AlbumMapper albumMapper;
     @Autowired 
     private IMusicTypeService musicTypeService;
 
@@ -428,7 +422,7 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
         Long oldAlbumId = existingSong.getAlbumId();
         
         // 如果没有提供新的专辑名称，保持原有专辑
-        if (StringUtils.isEmpty(newAlbumName)) {
+        if (!StringUtils.hasText(newAlbumName)) {
             return oldAlbumId;
         }
         

@@ -16,7 +16,6 @@ import com.lanke.echomusic.service.IOperationLogService;  // 添加这行
 import com.lanke.echomusic.service.MinioService;
 import com.lanke.echomusic.utils.JwtUtil;
 import com.lanke.echomusic.vo.UserVO;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;

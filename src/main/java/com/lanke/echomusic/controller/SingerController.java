@@ -3,7 +3,6 @@ package com.lanke.echomusic.controller;
 import com.lanke.echomusic.common.Result;
 import com.lanke.echomusic.dto.singer.SingerInfoDTO;
 import com.lanke.echomusic.dto.singer.SingerSearchDTO;
-import com.lanke.echomusic.entity.Singer;
 import com.lanke.echomusic.service.ISingerService;
 import com.lanke.echomusic.vo.singer.SingerPageVO;
 
@@ -14,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
